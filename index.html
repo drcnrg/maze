@@ -49,7 +49,6 @@
         canvas { 
             image-rendering: pixelated; 
         }
-        /* Custom Scrollbar for Player List */
         .custom-scrollbar::-webkit-scrollbar { width: 3px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
@@ -127,7 +126,7 @@
                 </h3>
                 
                 <ul id="playerList" class="flex flex-col gap-2 overflow-y-auto custom-scrollbar flex-grow pr-1">
-                    </ul>
+                </ul>
 
                 <div class="mt-4 pt-4 border-t border-white/5">
                     <div class="flex gap-2">
@@ -162,17 +161,18 @@
 
         const PLAYER_COLORS = ['#ff2a85', '#39ff14', '#bc13fe', '#fff200', '#ff4d00', '#00f0ff', '#00ffcc'];
         const GRID_COLOR = '#00f0ff'; 
-        const WALL_THICKNESS = 3; // Decreased to 3px
+        const WALL_THICKNESS = 3;
 
         let state = {
             room: null,
             playerId: 'mzb_' + Math.random().toString(36).substr(2, 9),
-            isHost: false,
+            hostId: null,
             level: 1,
             maze: null,
             players: {},
             isTransitioning: false,
-            myColor: PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)]
+            myColor: PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)],
+            cellSize: 0
         };
 
         const canvas = document.getElementById('mazeCanvas');
@@ -181,7 +181,6 @@
         const game = document.getElementById('game-ui');
         const overlay = document.getElementById('transitionOverlay');
 
-        // Maze Engine
         function generateMaze(size) {
             let grid = Array(size).fill().map(() => Array(size).fill().map(() => ({ 
                 top: true, right: true, bottom: true, left: true, visited: false 
@@ -211,21 +210,19 @@
         }
 
         function calculateGridSize(level) {
-            if (level <= 5) return 8;
-            if (level <= 15) return 12;
-            if (level <= 30) return 18;
-            return 22;
+            if (level <= 5) return 10;
+            if (level <= 15) return 14;
+            return 20;
         }
 
-        // Event Handlers
         document.getElementById('btnCreate').addEventListener('click', async () => {
             const name = document.getElementById('playerName').value.trim() || 'USER';
             const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
             state.room = roomCode;
-            state.isHost = true;
+            
             await set(ref(db, `rooms/${roomCode}`), {
                 level: 1,
-                maze: generateMaze(8),
+                maze: generateMaze(10),
                 host: state.playerId,
                 createdAt: Date.now()
             });
@@ -236,51 +233,54 @@
             const name = document.getElementById('playerName').value.trim() || 'USER';
             const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
             const snap = await get(ref(db, `rooms/${roomCode}`));
-            if (!snap.exists()) return;
+            if (!snap.exists()) return alert("Sector Not Found");
             state.room = roomCode;
             joinRoom(roomCode, name);
         });
 
         async function joinRoom(code, name) {
             lobby.classList.add('opacity-0', 'scale-95');
-            setTimeout(() => { lobby.classList.add('hidden'); game.classList.remove('hidden'); resizeCanvas(); }, 500);
+            setTimeout(() => { 
+                lobby.classList.add('hidden'); 
+                game.classList.remove('hidden'); 
+                resizeCanvas(); 
+            }, 500);
+            
             document.getElementById('displayRoomCode').innerText = code;
             
             const myRef = ref(db, `rooms/${code}/players/${state.playerId}`);
             await set(myRef, { name, color: state.myColor, x: 0, y: 0, finished: false });
             onDisconnect(myRef).remove();
 
-           onValue(ref(db, `rooms/${code}`), (snapshot) => {
-    const data = snapshot.val();
-    if (!data) return;
-    
-    state.players = data.players || {};
-    // SYNC HOST ID FROM DATABASE
-    state.hostId = data.host; 
+            onValue(ref(db, `rooms/${code}`), (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
 
-    if (state.level !== data.level || !state.maze || state.maze.seed !== data.maze.seed) {
-        state.level = data.level;
-        state.maze = data.maze;
-        state.isTransitioning = false;
-        overlay.classList.add('hidden');
-        document.getElementById('displayLevel').innerText = state.level;
-        resizeCanvas();
-    }
-    updatePlayerList();
-    checkProgression();
-    render();
-});
+                state.players = data.players || {};
+                state.hostId = data.host; 
+
+                if (state.level !== data.level || !state.maze || state.maze.seed !== data.maze.seed) {
+                    state.level = data.level;
+                    state.maze = data.maze;
+                    state.isTransitioning = false;
+                    overlay.classList.add('hidden');
+                    document.getElementById('displayLevel').innerText = state.level;
+                    resizeCanvas();
+                }
+                
+                updatePlayerList();
+                checkProgression();
+                render();
+            });
+        }
 
         function resizeCanvas() {
             if (!state.maze) return;
             const container = canvas.parentElement;
-            const pad = 20;
-            const availableW = container.clientWidth - pad;
-            const availableH = container.clientHeight - pad;
-            const cellSize = Math.min(availableW / state.maze.size, availableH / state.maze.size, 80);
-            state.cellSize = cellSize;
-            canvas.width = state.maze.size * cellSize;
-            canvas.height = state.maze.size * cellSize;
+            const size = Math.min(container.clientWidth - 40, container.clientHeight - 40, 800);
+            state.cellSize = size / state.maze.size;
+            canvas.width = size;
+            canvas.height = size;
             render();
         }
 
@@ -291,19 +291,16 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const cs = state.cellSize;
 
-            // Exit Glow
             const ex = state.maze.end;
-            ctx.shadowBlur = 20;
+            ctx.shadowBlur = 25;
             ctx.shadowColor = '#ff2a85';
             ctx.fillStyle = 'rgba(255, 42, 133, 0.2)';
-            ctx.fillRect(ex.c * cs + 2, ex.r * cs + 2, cs - 4, cs - 4);
+            ctx.fillRect(ex.c * cs + 4, ex.r * cs + 4, cs - 8, cs - 8);
 
-            // Walls (3px)
-            ctx.shadowBlur = 5;
+            ctx.shadowBlur = 8;
             ctx.shadowColor = GRID_COLOR;
             ctx.strokeStyle = GRID_COLOR;
             ctx.lineWidth = WALL_THICKNESS;
-            ctx.lineCap = 'square';
             ctx.beginPath();
             for (let r = 0; r < state.maze.size; r++) {
                 for (let c = 0; c < state.maze.size; c++) {
@@ -317,18 +314,16 @@
             }
             ctx.stroke();
 
-            // Players with Glow
-            Object.entries(state.players).forEach(([id, p]) => {
+            Object.values(state.players).forEach(p => {
                 const px = p.x * cs + cs/2;
                 const py = p.y * cs + cs/2;
-                ctx.shadowBlur = 20; // Concentrated glow
+                ctx.shadowBlur = 15;
                 ctx.shadowColor = p.color;
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
                 ctx.arc(px, py, cs/3.5, 0, Math.PI * 2);
                 ctx.fill();
                 
-                // Central Core
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = '#fff';
                 ctx.beginPath();
@@ -341,9 +336,11 @@
             if (!state.room || !state.maze || state.isTransitioning) return;
             const me = state.players[state.playerId];
             if (!me || me.finished) return;
+            
             let nx = me.x, ny = me.y;
             const cell = state.maze.grid[me.y][me.x];
             const key = e.key.toLowerCase();
+            
             if ((key === 'w' || key === 'arrowup') && !cell.top) ny--;
             else if ((key === 'd' || key === 'arrowright') && !cell.right) nx++;
             else if ((key === 's' || key === 'arrowdown') && !cell.bottom) ny++;
@@ -361,13 +358,11 @@
             Object.entries(state.players).forEach(([id, p]) => {
                 const isMe = id === state.playerId;
                 list.innerHTML += `
-                    <li class="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/5 border border-white/5">
-                        <div class="w-2 h-2 rounded-full shadow-[0_0_8px] shadow-${p.color}" style="background: ${p.color}"></div>
+                    <li class="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/5 border border-white/5">
+                        <div class="w-2 h-2 rounded-full" style="background:${p.color}; box-shadow:0 0 10px ${p.color}"></div>
                         <div class="flex flex-col min-w-0">
-                            <span class="text-[11px] font-bold truncate ${isMe ? 'text-white' : 'text-gray-400'}">${p.name}</span>
-                            <span class="text-[7px] uppercase tracking-widest ${p.finished ? 'text-neonPink' : 'text-gray-600'}">
-                                ${p.finished ? 'SECURED' : 'SYNCING'}
-                            </span>
+                            <span class="text-[10px] font-black truncate ${isMe ? 'text-white' : 'text-gray-500'}">${p.name}</span>
+                            <span class="text-[7px] font-bold ${p.finished ? 'text-neonPink' : 'text-gray-700'}">${p.finished ? 'SECURED' : 'ACTIVE'}</span>
                         </div>
                     </li>
                 `;
@@ -375,49 +370,48 @@
         }
 
         function checkProgression() {
-    const ids = Object.keys(state.players);
-    if (ids.length === 0 || state.isTransitioning) return;
-    
-    if (ids.every(id => state.players[id].finished)) {
-        state.isTransitioning = true;
-        overlay.classList.remove('hidden');
-        
-        let count = 3;
-        document.getElementById('countdown').innerText = count; // Reset UI immediately
-        
-        const timer = setInterval(() => {
-            count--;
-            // Ensure we don't show negative numbers
-            document.getElementById('countdown').innerText = Math.max(0, count); 
+            const ids = Object.keys(state.players);
+            if (ids.length === 0 || state.isTransitioning) return;
             
-            if (count <= 0) {
-                clearInterval(timer);
-                // USE DATABASE HOST ID FOR THE CHECK
-                if (state.playerId === state.hostId) {
-                    advance();
-                }
+            const allFinished = ids.every(id => state.players[id].finished);
+
+            if (allFinished) {
+                state.isTransitioning = true;
+                overlay.classList.remove('hidden');
+                
+                let count = 3;
+                const countEl = document.getElementById('countdown');
+                countEl.innerText = count;
+                
+                const timer = setInterval(() => {
+                    count--;
+                    countEl.innerText = Math.max(0, count);
+                    
+                    if (count <= 0) {
+                        clearInterval(timer);
+                        if (state.playerId === state.hostId) {
+                            advance();
+                        }
+                    }
+                }, 1000);
             }
-        }, 1000);
-    }
-}
+        }
 
         async function advance() {
-    const nextLvl = state.level + 1;
-    const updates = {};
-    
-    // Core room updates
-    updates['level'] = nextLvl;
-    updates['maze'] = generateMaze(calculateGridSize(nextLvl));
-    
-    // Reset all players locally before pushing to Firebase
-    Object.keys(state.players).forEach(id => {
-        updates[`players/${id}/x`] = 0;
-        updates[`players/${id}/y`] = 0;
-        updates[`players/${id}/finished`] = false;
-    });
+            const nextLvl = state.level + 1;
+            const updates = {};
+            
+            updates['level'] = nextLvl;
+            updates['maze'] = generateMaze(calculateGridSize(nextLvl));
+            
+            Object.keys(state.players).forEach(id => {
+                updates[`players/${id}/x`] = 0;
+                updates[`players/${id}/y`] = 0;
+                updates[`players/${id}/finished`] = false;
+            });
 
-    await update(ref(db, `rooms/${state.room}`), updates);
-}
+            await update(ref(db, `rooms/${state.room}`), updates);
+        }
     </script>
 </body>
 </html>
