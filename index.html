@@ -250,23 +250,26 @@
             await set(myRef, { name, color: state.myColor, x: 0, y: 0, finished: false });
             onDisconnect(myRef).remove();
 
-            onValue(ref(db, `rooms/${code}`), (snapshot) => {
-                const data = snapshot.val();
-                if (!data) return;
-                state.players = data.players || {};
-                if (state.level !== data.level || !state.maze || state.maze.seed !== data.maze.seed) {
-                    state.level = data.level;
-                    state.maze = data.maze;
-                    state.isTransitioning = false;
-                    overlay.classList.add('hidden');
-                    document.getElementById('displayLevel').innerText = state.level;
-                    resizeCanvas();
-                }
-                updatePlayerList();
-                checkProgression();
-                render();
-            });
-        }
+           onValue(ref(db, `rooms/${code}`), (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
+    
+    state.players = data.players || {};
+    // SYNC HOST ID FROM DATABASE
+    state.hostId = data.host; 
+
+    if (state.level !== data.level || !state.maze || state.maze.seed !== data.maze.seed) {
+        state.level = data.level;
+        state.maze = data.maze;
+        state.isTransitioning = false;
+        overlay.classList.add('hidden');
+        document.getElementById('displayLevel').innerText = state.level;
+        resizeCanvas();
+    }
+    updatePlayerList();
+    checkProgression();
+    render();
+});
 
         function resizeCanvas() {
             if (!state.maze) return;
@@ -372,33 +375,49 @@
         }
 
         function checkProgression() {
-            const ids = Object.keys(state.players);
-            if (ids.length === 0 || state.isTransitioning) return;
-            if (ids.every(id => state.players[id].finished)) {
-                state.isTransitioning = true;
-                overlay.classList.remove('hidden');
-                let count = 3;
-                const timer = setInterval(() => {
-                    count--;
-                    document.getElementById('countdown').innerText = count;
-                    if (count <= 0) {
-                        clearInterval(timer);
-                        if (state.isHost) advance();
-                    }
-                }, 1000);
+    const ids = Object.keys(state.players);
+    if (ids.length === 0 || state.isTransitioning) return;
+    
+    if (ids.every(id => state.players[id].finished)) {
+        state.isTransitioning = true;
+        overlay.classList.remove('hidden');
+        
+        let count = 3;
+        document.getElementById('countdown').innerText = count; // Reset UI immediately
+        
+        const timer = setInterval(() => {
+            count--;
+            // Ensure we don't show negative numbers
+            document.getElementById('countdown').innerText = Math.max(0, count); 
+            
+            if (count <= 0) {
+                clearInterval(timer);
+                // USE DATABASE HOST ID FOR THE CHECK
+                if (state.playerId === state.hostId) {
+                    advance();
+                }
             }
-        }
+        }, 1000);
+    }
+}
 
         async function advance() {
-            const nextLvl = state.level + 1;
-            const updates = { level: nextLvl, maze: generateMaze(calculateGridSize(nextLvl)) };
-            Object.keys(state.players).forEach(id => {
-                updates[`players/${id}/x`] = 0;
-                updates[`players/${id}/y`] = 0;
-                updates[`players/${id}/finished`] = false;
-            });
-            await update(ref(db, `rooms/${state.room}`), updates);
-        }
+    const nextLvl = state.level + 1;
+    const updates = {};
+    
+    // Core room updates
+    updates['level'] = nextLvl;
+    updates['maze'] = generateMaze(calculateGridSize(nextLvl));
+    
+    // Reset all players locally before pushing to Firebase
+    Object.keys(state.players).forEach(id => {
+        updates[`players/${id}/x`] = 0;
+        updates[`players/${id}/y`] = 0;
+        updates[`players/${id}/finished`] = false;
+    });
+
+    await update(ref(db, `rooms/${state.room}`), updates);
+}
     </script>
 </body>
 </html>
