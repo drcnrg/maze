@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Maze</title>
+    <title>Neon Maze - MAYBORG Protocol</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -12,102 +12,135 @@
                     colors: {
                         neonPink: '#ff2a85',
                         neonCyan: '#00f0ff',
-                        darkBg: '#08080c',
-                        glass: 'rgba(20, 20, 30, 0.65)'
+                        neonGreen: '#39ff14',
+                        neonPurple: '#bc13fe',
+                        neonYellow: '#fff200',
+                        darkBg: '#050508',
+                        glass: 'rgba(15, 15, 25, 0.7)'
                     },
                     boxShadow: {
-                        'neon-pink': '0 0 10px #ff2a85, 0 0 20px #ff2a85',
-                        'neon-cyan': '0 0 10px #00f0ff, 0 0 20px #00f0ff',
-                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
+                        'neon-pink': '0 0 15px #ff2a85, 0 0 30px #ff2a85',
+                        'neon-cyan': '0 0 15px #00f0ff, 0 0 30px #00f0ff',
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.8)',
                     }
                 }
             }
         }
     </script>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #08080c; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .glass-panel { background: rgba(20, 20, 30, 0.65); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; }
-        .grid-bg { background-image: linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px); background-size: 50px 50px; }
-        
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.4); border-radius: 2px; }
-
-        #mazeCanvas { border-radius: 8px; box-shadow: 0 0 20px rgba(0, 240, 255, 0.1); }
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #050508; 
+            color: #fff; 
+            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+        }
+        .glass-panel { 
+            background: rgba(15, 15, 25, 0.7); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+        }
+        .ambient-grid { 
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px), 
+                linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px); 
+            background-size: 40px 40px; 
+        }
+        canvas { 
+            image-rendering: pixelated; 
+        }
+        /* Custom Scrollbar for Player List */
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col items-center justify-center grid-bg relative">
+<body class="h-screen w-screen flex flex-col items-center justify-center ambient-grid relative">
 
-    <div id="lobby-ui" class="glass-panel p-8 w-96 flex flex-col gap-6 shadow-glass z-20 transition-opacity duration-300">
-        <h1 class="text-4xl font-black text-center text-transparent bg-clip-text bg-gradient-to-br from-neonCyan to-neonPink drop-shadow-[0_0_8px_rgba(0,240,255,0.6)] tracking-wider">NEON MAZE</h1>
-        
-        <div class="flex flex-col gap-4">
-            <input type="text" id="playerName" placeholder="Enter Player Name" class="w-full bg-black/50 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-neonCyan transition-colors text-center text-lg font-semibold tracking-wide">
-            <button id="btnCreate" class="w-full py-3 rounded-lg bg-neonCyan text-darkBg font-bold text-lg hover:shadow-neon-cyan transition-all transform hover:scale-[1.02]">Create New Room</button>
-        </div>
-
-        <div class="flex items-center gap-3 opacity-60">
-            <hr class="flex-grow border-gray-600">
-            <span class="text-xs uppercase tracking-widest font-bold">OR JOIN</span>
-            <hr class="flex-grow border-gray-600">
-        </div>
-
-        <div class="flex gap-2">
-            <input type="text" id="roomCodeInput" placeholder="ROOM CODE" maxlength="6" class="w-2/3 bg-black/50 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-neonPink text-center tracking-[0.3em] uppercase transition-colors font-mono font-bold text-lg">
-            <button id="btnJoin" class="w-1/3 py-3 rounded-lg bg-neonPink text-white font-bold hover:shadow-neon-pink transition-all transform hover:scale-[1.02]">Join</button>
+    <div id="lobby-ui" class="glass-panel p-10 w-[420px] rounded-[30px] flex flex-col gap-8 shadow-glass z-20 transition-all duration-500 transform scale-100">
+        <div class="text-center">
+            <h1 class="text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-neonCyan via-neonPurple to-neonPink drop-shadow-[0_0_15px_rgba(188,19,254,0.5)]">
+                NEON MAZE
+            </h1>
+            <p class="text-[10px] uppercase tracking-[0.4em] text-gray-500 mt-2 font-bold">Multiplayer Protocol v2.5</p>
         </div>
         
-        <p id="lobbyMsg" class="text-center text-sm text-neonPink h-4 font-semibold"></p>
+        <div class="space-y-4">
+            <input type="text" id="playerName" placeholder="CODENAME" maxlength="12" 
+                class="w-full bg-black/40 border-2 border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-neonCyan transition-all text-center text-xl font-bold tracking-widest uppercase placeholder:text-gray-700">
+            <button id="btnCreate" class="w-full py-4 rounded-xl bg-neonCyan text-darkBg font-black text-lg hover:shadow-neon-cyan transition-all transform hover:-translate-y-1 active:scale-95">
+                INITIALIZE ROOM
+            </button>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="h-[1px] flex-grow bg-gradient-to-r from-transparent to-white/20"></div>
+            <span class="text-[10px] font-black text-gray-500">UPLINK</span>
+            <div class="h-[1px] flex-grow bg-gradient-to-l from-transparent to-white/20"></div>
+        </div>
+
+        <div class="flex gap-3">
+            <input type="text" id="roomCodeInput" placeholder="CODE" maxlength="6" 
+                class="w-2/3 bg-black/40 border-2 border-white/10 rounded-xl px-4 py-4 focus:outline-none focus:border-neonPink text-center tracking-[0.5em] uppercase font-mono font-bold text-xl">
+            <button id="btnJoin" class="w-1/3 py-4 rounded-xl border-2 border-neonPink text-neonPink font-black hover:bg-neonPink hover:text-white hover:shadow-neon-pink transition-all active:scale-95">
+                JOIN
+            </button>
+        </div>
+        <p id="lobbyMsg" class="text-center text-xs text-neonPink font-bold h-2"></p>
     </div>
 
-    <div id="game-ui" class="hidden h-full w-full flex flex-col items-center p-4 md:p-6 z-10 gap-4 max-w-7xl mx-auto">
+    <div id="game-ui" class="hidden h-screen w-screen flex flex-col p-4 z-10 gap-4 overflow-hidden animate-in fade-in zoom-in duration-500">
         
-        <div class="glass-panel w-full px-6 py-4 flex flex-wrap justify-between items-center shrink-0">
-            <div class="flex items-center gap-6">
+        <div class="glass-panel w-full px-6 py-3 rounded-2xl flex justify-between items-center shrink-0">
+            <div class="flex items-center gap-8">
                 <div class="flex flex-col">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-widest">Room Code</span>
-                    <span id="displayRoomCode" class="font-mono text-neonPink font-bold tracking-widest text-2xl">------</span>
+                    <span class="text-[8px] text-gray-500 uppercase font-black tracking-widest">Node</span>
+                    <span id="displayRoomCode" class="font-mono text-neonCyan font-black text-xl tracking-tighter">------</span>
                 </div>
-                <div class="h-8 w-px bg-gray-700"></div>
                 <div class="flex flex-col">
-                    <span class="text-[10px] text-gray-400 uppercase tracking-widest">Level</span>
-                    <span id="displayLevel" class="text-white font-black text-2xl drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]">1</span>
+                    <span class="text-[8px] text-gray-500 uppercase font-black tracking-widest">Level</span>
+                    <span id="displayLevel" class="text-white font-black text-xl">1</span>
                 </div>
             </div>
-            <div id="gameStatus" class="text-neonCyan font-bold tracking-wide animate-pulse bg-neonCyan/10 px-4 py-2 rounded-full border border-neonCyan/30">
-                Waiting for players...
+            <div id="gameStatus" class="px-4 py-1 rounded-full border border-neonCyan/20 bg-neonCyan/5 text-neonCyan font-bold tracking-widest text-[10px] uppercase animate-pulse">
+                Active Uplink
             </div>
         </div>
 
-        <div class="flex flex-col md:flex-row gap-4 w-full flex-grow min-h-0">
+        <div class="flex flex-col lg:flex-row gap-4 flex-grow min-h-0">
             
-            <div class="flex-grow flex items-center justify-center glass-panel relative overflow-hidden p-2 min-h-0">
-                <canvas id="mazeCanvas"></canvas>
+            <div class="flex-grow flex items-center justify-center glass-panel rounded-2xl relative overflow-hidden p-[4px] group">
+                <canvas id="mazeCanvas" class="max-w-full max-h-full"></canvas>
                 
-                <div id="transitionOverlay" class="hidden absolute inset-0 bg-darkBg/90 backdrop-blur-md flex flex-col items-center justify-center gap-4 z-20">
-                    <h2 class="text-4xl font-black text-neonCyan drop-shadow-[0_0_10px_rgba(0,240,255,0.8)] tracking-wider">LEVEL CLEAR!</h2>
-                    <p class="text-gray-300 text-lg tracking-wide">All players reached the objective.</p>
-                    <p class="text-neonPink font-mono text-xl mt-4">Next level in <span id="countdown">3</span>...</p>
+                <div id="transitionOverlay" class="hidden absolute inset-0 bg-darkBg/95 backdrop-blur-xl flex flex-col items-center justify-center gap-4 z-50">
+                    <h2 class="text-5xl font-black text-white tracking-tighter italic">SECTOR CLEAR</h2>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-neonPink font-mono text-5xl font-black" id="countdown">3</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="glass-panel w-full md:w-72 p-5 flex flex-col flex-shrink-0 min-h-0">
-                <h3 class="text-neonCyan text-sm uppercase tracking-[0.2em] font-bold mb-4 flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full bg-neonCyan shadow-neon-cyan animate-pulse"></div>
-                    Online Players
+            <div class="glass-panel w-full lg:w-60 rounded-2xl p-4 flex flex-col shrink-0">
+                <h3 class="text-gray-500 text-[9px] font-black uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                    <span class="flex h-2 w-2 rounded-full bg-neonGreen animate-pulse"></span>
+                    Entities
                 </h3>
-                <ul id="playerList" class="flex flex-col gap-3 overflow-y-auto pr-2">
-                    </ul>
                 
-                <div class="mt-auto pt-4 border-t border-gray-700/50 text-xs text-gray-400">
-                    <p>Controls: <span class="text-white font-mono bg-white/10 px-1 rounded">WASD</span> or <span class="text-white font-mono bg-white/10 px-1 rounded">Arrows</span></p>
+                <ul id="playerList" class="flex flex-col gap-2 overflow-y-auto custom-scrollbar flex-grow pr-1">
+                    </ul>
+
+                <div class="mt-4 pt-4 border-t border-white/5">
+                    <div class="flex gap-2">
+                        <kbd class="px-2 py-1 bg-white/5 rounded text-[10px] font-mono text-gray-400">WASD</kbd>
+                        <kbd class="px-2 py-1 bg-white/5 rounded text-[10px] font-mono text-gray-400">ARROWS</kbd>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="absolute bottom-3 text-[10px] text-gray-600 tracking-[0.3em] font-semibold z-0 pointer-events-none uppercase">
-        Made with 💗by MAYBORG
+    <div class="absolute bottom-2 right-4 text-[9px] text-gray-700 tracking-[0.4em] font-black z-0 pointer-events-none uppercase">
+        Made with 💗 by <span class="text-gray-600">MAYBORG</span>
     </div>
 
     <script type="module">
@@ -127,155 +160,152 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // State
-        let currentRoom = null;
-        let myPlayerId = 'p_' + Math.random().toString(36).substr(2, 9);
-        let myColor = `hsl(${Math.floor(Math.random() * 360)}, 100%, 65%)`;
-        let isHost = false;
-        
-        let mazeData = null; 
-        let playersData = {};
-        let currentLevel = 1;
-        let isTransitioning = false;
+        const PLAYER_COLORS = ['#ff2a85', '#39ff14', '#bc13fe', '#fff200', '#ff4d00', '#00f0ff', '#00ffcc'];
+        const GRID_COLOR = '#00f0ff'; 
+        const WALL_THICKNESS = 3; // Decreased to 3px
+
+        let state = {
+            room: null,
+            playerId: 'mzb_' + Math.random().toString(36).substr(2, 9),
+            isHost: false,
+            level: 1,
+            maze: null,
+            players: {},
+            isTransitioning: false,
+            myColor: PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)]
+        };
 
         const canvas = document.getElementById('mazeCanvas');
         const ctx = canvas.getContext('2d');
-        
-        const uiLobby = document.getElementById('lobby-ui');
-        const uiGame = document.getElementById('game-ui');
+        const lobby = document.getElementById('lobby-ui');
+        const game = document.getElementById('game-ui');
         const overlay = document.getElementById('transitionOverlay');
 
-        // ==== LOBBY ====
-        document.getElementById('btnCreate').addEventListener('click', async () => {
-            const name = document.getElementById('playerName').value.trim() || 'Player';
-            const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
-            
-            currentRoom = roomCode;
-            isHost = true;
-
-            await set(ref(db, `rooms/${roomCode}`), {
-                level: 1,
-                maze: generateMaze(10, 10), // Starting size
-                host: myPlayerId
-            });
-
-            joinRoom(roomCode, name);
-        });
-
-        document.getElementById('btnJoin').addEventListener('click', async () => {
-            const name = document.getElementById('playerName').value.trim() || 'Player';
-            const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
-            
-            if(roomCode.length !== 6) { document.getElementById('lobbyMsg').innerText = "Invalid code."; return; }
-
-            const snap = await get(ref(db, `rooms/${roomCode}`));
-            if (!snap.exists()) { document.getElementById('lobbyMsg').innerText = "Room not found."; return; }
-
-            const pCount = snap.val().players ? Object.keys(snap.val().players).length : 0;
-            if(pCount >= 6) { document.getElementById('lobbyMsg').innerText = "Room full."; return; }
-
-            currentRoom = roomCode;
-            joinRoom(roomCode, name);
-        });
-
-        async function joinRoom(roomCode, name) {
-            uiLobby.style.opacity = '0';
-            setTimeout(() => {
-                uiLobby.classList.add('hidden');
-                uiGame.classList.remove('hidden');
-            }, 300);
-
-            document.getElementById('displayRoomCode').innerText = roomCode;
-            const myRef = ref(db, `rooms/${roomCode}/players/${myPlayerId}`);
-            
-            await set(myRef, { name, color: myColor, x: 0, y: 0, finished: false });
-            onDisconnect(myRef).remove();
-
-            onValue(ref(db, `rooms/${roomCode}`), (snapshot) => {
-                const data = snapshot.val();
-                if(!data) { alert("Room closed."); window.location.reload(); return; }
-                
-                playersData = data.players || {};
-                
-                if (currentLevel !== data.level || (data.maze && (!mazeData || mazeData.seed !== data.maze.seed))) {
-                    currentLevel = data.level;
-                    document.getElementById('displayLevel').innerText = currentLevel;
-                    mazeData = data.maze;
-                    isTransitioning = false;
-                    overlay.classList.add('hidden');
-                    resizeCanvas();
-                }
-
-                updateUI();
-                checkLevelProgression();
-                draw();
-            });
-        }
-
-        // ==== MAZE GENERATION ====
-        function generateMaze(cols, rows) {
-            let grid = Array(rows).fill().map(() => Array(cols).fill().map(() => ({ top: true, right: true, bottom: true, left: true, visited: false })));
+        // Maze Engine
+        function generateMaze(size) {
+            let grid = Array(size).fill().map(() => Array(size).fill().map(() => ({ 
+                top: true, right: true, bottom: true, left: true, visited: false 
+            })));
             let stack = [{ r: 0, c: 0 }];
             grid[0][0].visited = true;
 
             while (stack.length > 0) {
                 let curr = stack[stack.length - 1];
-                let n = [];
-                if (curr.r > 0 && !grid[curr.r - 1][curr.c].visited) n.push({ r: curr.r - 1, c: curr.c, dir: 'top' });
-                if (curr.c < cols - 1 && !grid[curr.r][curr.c + 1].visited) n.push({ r: curr.r, c: curr.c + 1, dir: 'right' });
-                if (curr.r < rows - 1 && !grid[curr.r + 1][curr.c].visited) n.push({ r: curr.r + 1, c: curr.c, dir: 'bottom' });
-                if (curr.c > 0 && !grid[curr.r][curr.c - 1].visited) n.push({ r: curr.r, c: curr.c - 1, dir: 'left' });
+                let neighbors = [];
+                if (curr.r > 0 && !grid[curr.r - 1][curr.c].visited) neighbors.push({ r: curr.r - 1, c: curr.c, dir: 'top' });
+                if (curr.c < size - 1 && !grid[curr.r][curr.c + 1].visited) neighbors.push({ r: curr.r, c: curr.c + 1, dir: 'right' });
+                if (curr.r < size - 1 && !grid[curr.r + 1][curr.c].visited) neighbors.push({ r: curr.r + 1, c: curr.c, dir: 'bottom' });
+                if (curr.c > 0 && !grid[curr.r][curr.c - 1].visited) neighbors.push({ r: curr.r, c: curr.c - 1, dir: 'left' });
 
-                if (n.length > 0) {
-                    let next = n[Math.floor(Math.random() * n.length)];
-                    let dr = curr.r - next.r, dc = curr.c - next.c;
-                    if (dr === 1) { grid[curr.r][curr.c].top = false; grid[next.r][next.c].bottom = false; }
-                    else if (dr === -1) { grid[curr.r][curr.c].bottom = false; grid[next.r][next.c].top = false; }
-                    if (dc === 1) { grid[curr.r][curr.c].left = false; grid[next.r][next.c].right = false; }
-                    else if (dc === -1) { grid[curr.r][curr.c].right = false; grid[next.r][next.c].left = false; }
-                    
+                if (neighbors.length > 0) {
+                    let next = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    if (next.dir === 'top') { grid[curr.r][curr.c].top = false; grid[next.r][next.c].bottom = false; }
+                    else if (next.dir === 'right') { grid[curr.r][curr.c].right = false; grid[next.r][next.c].left = false; }
+                    else if (next.dir === 'bottom') { grid[curr.r][curr.c].bottom = false; grid[next.r][next.c].top = false; }
+                    else if (next.dir === 'left') { grid[curr.r][curr.c].left = false; grid[next.r][next.c].right = false; }
                     grid[next.r][next.c].visited = true;
                     stack.push(next);
-                } else { stack.pop(); }
+                } else stack.pop();
             }
-            // End point at bottom right
-            return { grid, cols, rows, seed: Date.now(), endR: rows - 1, endC: cols - 1 };
+            return { grid, size, seed: Date.now(), end: { r: size - 1, c: size - 1 } };
         }
 
-        // ==== RENDERING ====
-        function resizeCanvas() {
-            if(!mazeData) return;
-            const container = canvas.parentElement;
-            const maxW = container.clientWidth - 20;
-            const maxH = container.clientHeight - 20;
-            
-            mazeData.cellSize = Math.min(Math.floor(maxW / mazeData.cols), Math.floor(maxH / mazeData.rows), 45);
-            canvas.width = mazeData.cols * mazeData.cellSize;
-            canvas.height = mazeData.rows * mazeData.cellSize;
-            draw();
+        function calculateGridSize(level) {
+            if (level <= 5) return 8;
+            if (level <= 15) return 12;
+            if (level <= 30) return 18;
+            return 22;
         }
+
+        // Event Handlers
+        document.getElementById('btnCreate').addEventListener('click', async () => {
+            const name = document.getElementById('playerName').value.trim() || 'USER';
+            const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            state.room = roomCode;
+            state.isHost = true;
+            await set(ref(db, `rooms/${roomCode}`), {
+                level: 1,
+                maze: generateMaze(8),
+                host: state.playerId,
+                createdAt: Date.now()
+            });
+            joinRoom(roomCode, name);
+        });
+
+        document.getElementById('btnJoin').addEventListener('click', async () => {
+            const name = document.getElementById('playerName').value.trim() || 'USER';
+            const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+            const snap = await get(ref(db, `rooms/${roomCode}`));
+            if (!snap.exists()) return;
+            state.room = roomCode;
+            joinRoom(roomCode, name);
+        });
+
+        async function joinRoom(code, name) {
+            lobby.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => { lobby.classList.add('hidden'); game.classList.remove('hidden'); resizeCanvas(); }, 500);
+            document.getElementById('displayRoomCode').innerText = code;
+            
+            const myRef = ref(db, `rooms/${code}/players/${state.playerId}`);
+            await set(myRef, { name, color: state.myColor, x: 0, y: 0, finished: false });
+            onDisconnect(myRef).remove();
+
+            onValue(ref(db, `rooms/${code}`), (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+                state.players = data.players || {};
+                if (state.level !== data.level || !state.maze || state.maze.seed !== data.maze.seed) {
+                    state.level = data.level;
+                    state.maze = data.maze;
+                    state.isTransitioning = false;
+                    overlay.classList.add('hidden');
+                    document.getElementById('displayLevel').innerText = state.level;
+                    resizeCanvas();
+                }
+                updatePlayerList();
+                checkProgression();
+                render();
+            });
+        }
+
+        function resizeCanvas() {
+            if (!state.maze) return;
+            const container = canvas.parentElement;
+            const pad = 20;
+            const availableW = container.clientWidth - pad;
+            const availableH = container.clientHeight - pad;
+            const cellSize = Math.min(availableW / state.maze.size, availableH / state.maze.size, 80);
+            state.cellSize = cellSize;
+            canvas.width = state.maze.size * cellSize;
+            canvas.height = state.maze.size * cellSize;
+            render();
+        }
+
         window.addEventListener('resize', resizeCanvas);
 
-        function draw() {
-            if(!mazeData) return;
+        function render() {
+            if (!state.maze) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const cs = mazeData.cellSize;
+            const cs = state.cellSize;
 
-            // Endpoint
-            ctx.fillStyle = 'rgba(255, 42, 133, 0.3)';
-            ctx.shadowBlur = 20; ctx.shadowColor = '#ff2a85';
-            ctx.fillRect(mazeData.endC * cs, mazeData.endR * cs, cs, cs);
-            ctx.shadowBlur = 0;
+            // Exit Glow
+            const ex = state.maze.end;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ff2a85';
+            ctx.fillStyle = 'rgba(255, 42, 133, 0.2)';
+            ctx.fillRect(ex.c * cs + 2, ex.r * cs + 2, cs - 4, cs - 4);
 
-            // Walls
-            ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            
+            // Walls (3px)
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = GRID_COLOR;
+            ctx.strokeStyle = GRID_COLOR;
+            ctx.lineWidth = WALL_THICKNESS;
+            ctx.lineCap = 'square';
             ctx.beginPath();
-            for (let r = 0; r < mazeData.rows; r++) {
-                for (let c = 0; c < mazeData.cols; c++) {
-                    const cell = mazeData.grid[r][c], x = c * cs, y = r * cs;
+            for (let r = 0; r < state.maze.size; r++) {
+                for (let c = 0; c < state.maze.size; c++) {
+                    const cell = state.maze.grid[r][c];
+                    const x = c * cs, y = r * cs;
                     if (cell.top) { ctx.moveTo(x, y); ctx.lineTo(x + cs, y); }
                     if (cell.right) { ctx.moveTo(x + cs, y); ctx.lineTo(x + cs, y + cs); }
                     if (cell.bottom) { ctx.moveTo(x, y + cs); ctx.lineTo(x + cs, y + cs); }
@@ -284,103 +314,90 @@
             }
             ctx.stroke();
 
-            // Players
-            Object.values(playersData).forEach(p => {
+            // Players with Glow
+            Object.entries(state.players).forEach(([id, p]) => {
+                const px = p.x * cs + cs/2;
+                const py = p.y * cs + cs/2;
+                ctx.shadowBlur = 20; // Concentrated glow
+                ctx.shadowColor = p.color;
                 ctx.fillStyle = p.color;
-                ctx.shadowBlur = p.finished ? 25 : 12; ctx.shadowColor = p.color;
                 ctx.beginPath();
-                ctx.arc(p.x * cs + cs/2, p.y * cs + cs/2, cs/3.5, 0, Math.PI * 2);
+                ctx.arc(px, py, cs/3.5, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Central Core
                 ctx.shadowBlur = 0;
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(px, py, cs/10, 0, Math.PI * 2);
+                ctx.fill();
             });
         }
 
-        // ==== MOVEMENT ====
         window.addEventListener('keydown', (e) => {
-            if(!currentRoom || !mazeData || !playersData[myPlayerId] || isTransitioning) return;
-            const me = playersData[myPlayerId];
-            if(me.finished) return;
+            if (!state.room || !state.maze || state.isTransitioning) return;
+            const me = state.players[state.playerId];
+            if (!me || me.finished) return;
+            let nx = me.x, ny = me.y;
+            const cell = state.maze.grid[me.y][me.x];
+            const key = e.key.toLowerCase();
+            if ((key === 'w' || key === 'arrowup') && !cell.top) ny--;
+            else if ((key === 'd' || key === 'arrowright') && !cell.right) nx++;
+            else if ((key === 's' || key === 'arrowdown') && !cell.bottom) ny++;
+            else if ((key === 'a' || key === 'arrowleft') && !cell.left) nx--;
 
-            let newR = me.y, newC = me.x;
-            const cell = mazeData.grid[me.y][me.x];
-
-            if (['ArrowUp', 'w', 'W'].includes(e.key) && !cell.top) newR--;
-            else if (['ArrowRight', 'd', 'D'].includes(e.key) && !cell.right) newC++;
-            else if (['ArrowDown', 's', 'S'].includes(e.key) && !cell.bottom) newR++;
-            else if (['ArrowLeft', 'a', 'A'].includes(e.key) && !cell.left) newC--;
-
-            if (newR !== me.y || newC !== me.x) {
-                const finished = (newR === mazeData.endR && newC === mazeData.endC);
-                update(ref(db, `rooms/${currentRoom}/players/${myPlayerId}`), { x: newC, y: newR, finished });
+            if (nx !== me.x || ny !== me.y) {
+                const finished = (nx === state.maze.end.c && ny === state.maze.end.r);
+                update(ref(db, `rooms/${state.room}/players/${state.playerId}`), { x: nx, y: ny, finished });
             }
         });
 
-        // ==== LOGIC SYNC ====
-        function updateUI() {
+        function updatePlayerList() {
             const list = document.getElementById('playerList');
             list.innerHTML = '';
-            let pCount = 0, finishedCount = 0;
-
-            Object.entries(playersData).forEach(([id, p]) => {
-                pCount++; if(p.finished) finishedCount++;
+            Object.entries(state.players).forEach(([id, p]) => {
+                const isMe = id === state.playerId;
                 list.innerHTML += `
-                    <li class="flex items-center justify-between p-3 rounded-lg bg-black/40 border border-white/5 shadow-inner">
-                        <div class="flex items-center gap-3">
-                            <div class="w-3 h-3 rounded-full shadow-[0_0_10px_currentColor]" style="color: ${p.color}; background: ${p.color}"></div>
-                            <span class="${id === myPlayerId ? 'font-bold text-white' : 'text-gray-300'} truncate w-28">${p.name}</span>
+                    <li class="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/5 border border-white/5">
+                        <div class="w-2 h-2 rounded-full shadow-[0_0_8px] shadow-${p.color}" style="background: ${p.color}"></div>
+                        <div class="flex flex-col min-w-0">
+                            <span class="text-[11px] font-bold truncate ${isMe ? 'text-white' : 'text-gray-400'}">${p.name}</span>
+                            <span class="text-[7px] uppercase tracking-widest ${p.finished ? 'text-neonPink' : 'text-gray-600'}">
+                                ${p.finished ? 'SECURED' : 'SYNCING'}
+                            </span>
                         </div>
-                        ${p.finished ? '<span class="text-[10px] font-bold text-neonPink uppercase tracking-wider bg-neonPink/10 px-2 py-1 rounded">Done</span>' : ''}
-                    </li>`;
+                    </li>
+                `;
             });
-
-            const status = document.getElementById('gameStatus');
-            if (pCount === 0) status.innerText = "Waiting...";
-            else if (finishedCount === pCount) {
-                status.innerText = "Level Cleared!";
-                status.className = "text-neonPink font-bold tracking-wide animate-pulse bg-neonPink/10 px-4 py-2 rounded-full border border-neonPink/30";
-            } else {
-                status.innerText = `Running (${finishedCount}/${pCount} Done)`;
-                status.className = "text-neonCyan font-bold tracking-wide bg-neonCyan/10 px-4 py-2 rounded-full border border-neonCyan/30";
-            }
         }
 
-        function checkLevelProgression() {
-            const keys = Object.keys(playersData);
-            if(keys.length === 0 || isTransitioning) return;
-
-            const allFinished = keys.every(k => playersData[k].finished);
-            
-            if (allFinished) {
-                isTransitioning = true;
+        function checkProgression() {
+            const ids = Object.keys(state.players);
+            if (ids.length === 0 || state.isTransitioning) return;
+            if (ids.every(id => state.players[id].finished)) {
+                state.isTransitioning = true;
                 overlay.classList.remove('hidden');
-                
                 let count = 3;
-                const cdEl = document.getElementById('countdown');
-                cdEl.innerText = count;
-                
                 const timer = setInterval(() => {
                     count--;
-                    cdEl.innerText = count;
-                    if(count <= 0) {
+                    document.getElementById('countdown').innerText = count;
+                    if (count <= 0) {
                         clearInterval(timer);
-                        if(isHost) generateNextLevel();
+                        if (state.isHost) advance();
                     }
                 }, 1000);
             }
         }
 
-        async function generateNextLevel() {
-            const nextLvl = currentLevel + 1;
-            const size = Math.min(10 + (nextLvl * 2), 30); // Max size 30x30
-            
-            const updates = { level: nextLvl, maze: generateMaze(size, size) };
-            Object.keys(playersData).forEach(pId => {
-                updates[`players/${pId}/x`] = 0;
-                updates[`players/${pId}/y`] = 0;
-                updates[`players/${pId}/finished`] = false;
+        async function advance() {
+            const nextLvl = state.level + 1;
+            const updates = { level: nextLvl, maze: generateMaze(calculateGridSize(nextLvl)) };
+            Object.keys(state.players).forEach(id => {
+                updates[`players/${id}/x`] = 0;
+                updates[`players/${id}/y`] = 0;
+                updates[`players/${id}/finished`] = false;
             });
-
-            await update(ref(db, `rooms/${currentRoom}`), updates);
+            await update(ref(db, `rooms/${state.room}`), updates);
         }
     </script>
 </body>
